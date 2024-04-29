@@ -1,0 +1,30 @@
+redis:
+    image: redis:7.2.4
+    restart: always
+    ports:
+      - "6379:6379"
+    command:
+      - /bin/sh
+      - -c
+    # - Double dollars, so that the variable is not expanded by Docker Compose
+    # - Surround by quotes, so that the shell does not split the password
+    # - The ${variable:?message} syntax causes shell to exit with a non-zero
+    #   code and print a message, when the variable is not set or empty
+      - redis-server --requirepass "$${REDIS_PASSWORD:?REDIS_PASSWORD variable is not set}"
+    volumes:
+      - redis-data:/root/redis:z
+        #- redis-config/redis.conf:/usr/local/etc/redis/redis.conf:z
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-changeme}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_DATABASES: ${REDIS_DATABASES:-16}
+    env_file:
+      - .env
+
+volumes:
+  redis-data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ./data/redis-data
